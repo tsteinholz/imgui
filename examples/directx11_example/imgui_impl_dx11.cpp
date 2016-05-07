@@ -8,9 +8,7 @@
 
 #include <imgui.h>
 #include "imgui_impl_dx11.h"
-
-// For sprintf
-#include <stdio.h>
+#include <stdio.h>  // sprintf
 
 // DirectX
 #include <d3d11.h>
@@ -349,16 +347,15 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
     if (g_pFontSampler)
         ImGui_ImplDX11_InvalidateDeviceObjects();
 
-    // Detect which d3dcompiler_XX.dll is present in the system and grab a pointer to D3DCompile.
-    // Without this, you must link d3dcompiler.lib with the project.
-    D3DCompile_t D3DCompile = NULL;
+    // Detect which d3dcompiler_XX.dll is present in the system and grab a pointer to D3DCompile. Otherwise, we can include <d3dcompiler.h>, link d3dcompiler.lib and depend on a single DLL version.
+    static D3DCompile_t D3DCompile = NULL;
+    if (!D3DCompile)
     {
-        char dllBuffer[20];
         for (int i = 47; i > 30 && !D3DCompile; i--)
         {
-            sprintf(dllBuffer, "d3dcompiler_%d.dll", i);
-            HMODULE hDll = LoadLibraryA(dllBuffer);
-            if (hDll)
+            char dll_name[20];
+            sprintf_s(dll_name, "d3dcompiler_%02d.dll", i);
+            if (HMODULE hDll = LoadLibraryA(dll_name))
                 D3DCompile = (D3DCompile_t)GetProcAddress(hDll, "D3DCompile");
         }
         if (!D3DCompile)
